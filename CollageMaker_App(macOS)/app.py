@@ -81,6 +81,30 @@ class CollageBridge:
             return {"success": True, "path": path, "name": os.path.basename(path), "thumb": thumb_b64}
         return {"success": False}
 
+    def add_image_data(self, slot, data_url, name):
+        try:
+            # Parse data URL
+            header, encoded = data_url.split(",", 1)
+            data = base64.b64encode(base64.b64decode(encoded)) # Just to verify? No, let's just save.
+            
+            # Save to a temp file that persists during the session
+            fd, path = tempfile.mkstemp(suffix=".png")
+            with os.fdopen(fd, 'wb') as f:
+                f.write(base64.b64decode(encoded))
+            
+            self.img_paths[int(slot)] = path
+            thumb_b64 = self._thumb_b64(path)
+            return {"success": True, "path": path, "name": name, "thumb": thumb_b64}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def add_image_at_path(self, slot, path):
+        if os.path.exists(path):
+            self.img_paths[int(slot)] = path
+            thumb_b64 = self._thumb_b64(path)
+            return {"success": True, "path": path, "name": os.path.basename(path), "thumb": thumb_b64}
+        return {"success": False, "error": "File not found"}
+
     def _thumb_b64(self, path):
         img = Image.open(path).convert("RGB")
         img.thumbnail((300, 200))

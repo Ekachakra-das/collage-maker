@@ -209,8 +209,9 @@
     .btn-download:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
     /* ── Canvas area ── */
-    .canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; background: var(--surface-30); overflow: hidden; }
-    .empty-state { text-align: center; z-index: 1; opacity: 0.4; }
+    .canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; background: var(--surface-30); overflow: hidden; transition: background 0.2s; }
+    .canvas-area.drag-over { background: var(--primary-10); outline: 2px dashed var(--primary); outline-offset: -20px; }
+    .empty-state { text-align: center; z-index: 1; opacity: 0.4; pointer-events: none; }
     .empty-state .material-symbols-outlined { 
       width: 72px; height: 72px;
       color: var(--primary-30); margin: 0 auto 16px; display: flex; 
@@ -507,8 +508,43 @@
     }
   }
 
+  function initCenterDragAndDrop() {
+    const area = document.querySelector('.canvas-area');
+    if (!area) return;
+
+    area.ondragover = e => { e.preventDefault(); area.classList.add('drag-over'); };
+    area.ondragleave = () => area.classList.remove('drag-over');
+    area.ondrop = async e => {
+      e.preventDefault();
+      area.classList.remove('drag-over');
+      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+      if (files.length === 0) return;
+
+      for (const file of files) {
+        let targetId = slotIds.find(id => !images[id]);
+        if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
+          addSlot();
+          targetId = slotIds[slotIds.length - 1];
+        }
+        if (!targetId) targetId = slotIds[0];
+
+        const reader = new FileReader();
+        reader.onload = async ev => {
+          const res = await window.pywebview.api.add_image_data(targetId, ev.target.result, file.name);
+          if (res && res.success) {
+            images[targetId] = { thumb: res.thumb, name: res.name };
+            renderSlots();
+            schedulePreview();
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+  }
+
   // Init
   renderSlots();
+  initCenterDragAndDrop();
 </script>
 </body>
 </html>

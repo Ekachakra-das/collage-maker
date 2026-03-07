@@ -372,7 +372,36 @@ function downloadCollage() {
   toast(MESSAGES.saved, 'ok');
 }
 
+/** Center Drag and Drop */
+function initCenterDragAndDrop() {
+  const area = document.querySelector('.canvas-area');
+  if (!area) return;
+
+  area.ondragover = e => {
+    e.preventDefault();
+    area.classList.add('drag-over');
+  };
+  area.ondragleave = () => area.classList.remove('drag-over');
+  area.ondrop = e => {
+    e.preventDefault();
+    area.classList.remove('drag-over');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length === 0) return;
+
+    files.forEach(file => {
+      let targetId = slotIds.find(id => !images[id]);
+      if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
+        addSlot();
+        targetId = slotIds[slotIds.length - 1];
+      }
+      if (!targetId) targetId = slotIds[0];
+      readImageFile(file, targetId);
+    });
+  };
+}
+
 // ── Init ──────────────────────────────────────
 window.onload = () => {
   renderSlots();
+  initCenterDragAndDrop();
 };
