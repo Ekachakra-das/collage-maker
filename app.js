@@ -435,4 +435,49 @@ window.onload = () => {
   renderSlots();
   initCenterDragAndDrop();
   initPasteSupport();
+  initSidebarResizer();
 };
+
+/** Sidebar Resizing */
+function initSidebarResizer() {
+  const resizer = document.getElementById('sidebarResizer');
+  const sidebar = document.querySelector('.sidebar');
+  if (!resizer || !sidebar) return;
+
+  // Load saved width
+  const savedWidth = localStorage.getItem('collage-sidebar-width');
+  if (savedWidth) {
+    document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
+  }
+
+  let isResizing = false;
+
+  resizer.addEventListener('mousedown', e => {
+    isResizing = true;
+    resizer.classList.add('active');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!isResizing) return;
+    
+    let newWidth = e.clientX;
+    // Bounds
+    if (newWidth < 280) newWidth = 280;
+    if (newWidth > 600) newWidth = 600;
+
+    document.documentElement.style.setProperty('--sidebar-width', newWidth + 'px');
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (!isResizing) return;
+    isResizing = false;
+    resizer.classList.remove('active');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+
+    const finalWidth = parseInt(getComputedStyle(sidebar).width);
+    localStorage.setItem('collage-sidebar-width', finalWidth);
+  });
+}
