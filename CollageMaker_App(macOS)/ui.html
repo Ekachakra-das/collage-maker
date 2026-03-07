@@ -223,12 +223,13 @@
     .drop-hint p { font-weight: 700; font-size: 16px; letter-spacing: 0.5px; }
     @keyframes hintFade { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
 
-    .empty-state { text-align: center; z-index: 1; opacity: 0.4; pointer-events: none; transition: opacity 0.2s; }
+    .empty-state { text-align: center; z-index: 1; opacity: 0.7; pointer-events: none; transition: opacity 0.2s; }
     .empty-state .material-symbols-outlined { 
       width: 72px; height: 72px;
       color: var(--primary-30); margin: 0 auto 16px; display: flex; 
     }
-    .empty-state p { color: var(--text-faint); font-size: 14px; line-height: 1.7; }
+    .empty-state p { color: var(--text-dim); font-size: 14px; line-height: 1.7; }
+    .empty-state strong { color: var(--text-main); }
     .preview-img { max-width: 100%; max-height: 100%; border-radius: 16px; box-shadow: 0 28px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04); display: none; animation: canvasFadeIn 0.35s ease; }
     @keyframes canvasFadeIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
 
@@ -359,7 +360,7 @@
     <div class="gen-badge" id="genBadge"><div class="gen-dot"></div>Generating…</div>
     <div class="empty-state" id="emptyState">
       <span class="material-symbols-outlined" style="width: 72px; height: 72px;"><script>document.write(ICONS.photo_library)</script></span>
-      <p>Select a layout and upload, drag & drop, or <strong>paste</strong> your photos —<br><strong>preview will appear automatically</strong></p>
+      <p>Select a layout then <strong>drop</strong>, <strong>paste</strong> or <strong>upload</strong> your photos</p>
     </div>
     <div class="drop-hint">
       <span class="material-symbols-outlined" style="width:48px; height:48px;"><script>document.write(ICONS.add_circle)</script></span>
@@ -536,19 +537,22 @@
       const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
       if (files.length === 0) return;
 
+      let usedIds = [];
       for (const file of files) {
-        let targetId = slotIds.find(id => !images[id]);
+        let targetId = slotIds.find(id => !images[id] && !usedIds.includes(id));
         if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
           addSlot();
           targetId = slotIds[slotIds.length - 1];
         }
         if (!targetId) targetId = slotIds[0];
+        usedIds.push(targetId);
 
         const reader = new FileReader();
+        const tid = targetId; // capture for async
         reader.onload = async ev => {
-          const res = await window.pywebview.api.add_image_data(targetId, ev.target.result, file.name);
+          const res = await window.pywebview.api.add_image_data(tid, ev.target.result, file.name);
           if (res && res.success) {
-            images[targetId] = { thumb: res.thumb, name: res.name };
+            images[tid] = { thumb: res.thumb, name: res.name };
             renderSlots();
             schedulePreview();
           }
@@ -561,21 +565,24 @@
   function initPasteSupport() {
     window.addEventListener('paste', async e => {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      let usedIds = [];
       for (const item of items) {
         if (item.type.indexOf('image') !== -1) {
           const file = item.getAsFile();
-          let targetId = slotIds.find(id => !images[id]);
+          let targetId = slotIds.find(id => !images[id] && !usedIds.includes(id));
           if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
             addSlot();
             targetId = slotIds[slotIds.length - 1];
           }
           if (!targetId) targetId = slotIds[0];
+          usedIds.push(targetId);
 
           const reader = new FileReader();
+          const tid = targetId;
           reader.onload = async ev => {
-            const res = await window.pywebview.api.add_image_data(targetId, ev.target.result, file.name || 'Pasted Image');
+            const res = await window.pywebview.api.add_image_data(tid, ev.target.result, file.name || 'Pasted Image');
             if (res && res.success) {
-              images[targetId] = { thumb: res.thumb, name: res.name };
+              images[tid] = { thumb: res.thumb, name: res.name };
               renderSlots();
               schedulePreview();
             }

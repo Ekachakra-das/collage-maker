@@ -388,14 +388,20 @@ function initCenterDragAndDrop() {
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     if (files.length === 0) return;
 
+    let usedIds = [];
     files.forEach(file => {
-      let targetId = slotIds.find(id => !images[id]);
+      let targetId = slotIds.find(id => !images[id] && !usedIds.includes(id));
       if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
         addSlot();
         targetId = slotIds[slotIds.length - 1];
       }
-      if (!targetId) targetId = slotIds[0];
-      readImageFile(file, targetId);
+      if (targetId) {
+        usedIds.push(targetId);
+        readImageFile(file, targetId);
+      } else {
+        // Fallback to first slot if full
+        readImageFile(file, slotIds[0]);
+      }
     });
   };
 }
@@ -404,16 +410,21 @@ function initCenterDragAndDrop() {
 function initPasteSupport() {
   window.addEventListener('paste', e => {
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    let usedIds = [];
     for (const item of items) {
       if (item.type.indexOf('image') !== -1) {
         const file = item.getAsFile();
-        let targetId = slotIds.find(id => !images[id]);
+        let targetId = slotIds.find(id => !images[id] && !usedIds.includes(id));
         if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
           addSlot();
           targetId = slotIds[slotIds.length - 1];
         }
-        if (!targetId) targetId = slotIds[0];
-        readImageFile(file, targetId);
+        if (targetId) {
+          usedIds.push(targetId);
+          readImageFile(file, targetId);
+        } else {
+          readImageFile(file, slotIds[0]);
+        }
       }
     }
   });
