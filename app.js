@@ -179,21 +179,18 @@ function renderSlots() {
     };
 
     if (isFilled) {
-      const img = images[id];
       slotEl.innerHTML = `
-        <img src="${img.src}" class="slot-thumb" alt="Photo ${id}">
+        <img src="${images[id].src}" class="slot-thumb" alt="Photo ${id}">
         <div class="slot-overlay">
-          <button class="slot-ol-btn" title="Replace"><span class="material-symbols-outlined">sync</span></button>
+          <button class="slot-ol-btn" title="Replace"><span class="material-symbols-outlined">${ICONS.sync}</span></button>
           <button class="slot-ol-btn delete" title="Delete" onclick="event.stopPropagation(); removeSlot(${id})">
-            <span class="material-symbols-outlined">delete</span>
+            <span class="material-symbols-outlined">${ICONS.delete}</span>
           </button>
         </div>
-        <div class="slot-fname">${img._name || 'Photo'}</div>
+        <div class="slot-fname">${images[id]._name || 'Photo'}</div>
       `;
     } else {
-      slotEl.innerHTML = `
-        <span class="material-symbols-outlined slot-icon">image</span>
-      `;
+      slotEl.innerHTML = `<span class="material-symbols-outlined slot-icon">${ICONS.image}</span>`;
     }
     container.appendChild(slotEl);
   });

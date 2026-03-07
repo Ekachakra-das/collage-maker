@@ -38,18 +38,15 @@
   }
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="assets/icons.js"></script>
 </head>
 <body>
 
 <header>
   <div class="logo">
     <div class="logo-icon">
-      <span class="material-symbols-outlined">grid_view</span>
+      <span class="material-symbols-outlined"><script>document.write(ICONS.grid_view)</script></span>
     </div>
     <div>
       <h1>Collage Maker</h1>
@@ -65,16 +62,16 @@
       <!-- Layout type -->
       <section>
         <div class="s-head">
-          <span class="material-symbols-outlined">dashboard</span>
+          <span class="material-symbols-outlined"><script>document.write(ICONS.dashboard)</script></span>
           <h3>Layout Type</h3>
         </div>
         <div class="layout-grid" role="group" aria-label="Select layout type">
           <button class="lay-btn active" id="lay-h" onclick="setLayout('h')" title="Horizontal layout">
-            <span class="material-symbols-outlined">view_column</span>
+            <span class="material-symbols-outlined"><script>document.write(ICONS.view_column)</script></span>
             <span class="lay-name">Horizontal</span>
           </button>
           <button class="lay-btn" id="lay-v" onclick="setLayout('v')" title="Vertical layout">
-            <span class="material-symbols-outlined">view_agenda</span>
+            <span class="material-symbols-outlined"><script>document.write(ICONS.view_agenda)</script></span>
             <span class="lay-name">Vertical</span>
           </button>
           <button class="lay-btn" id="lay-grid" onclick="setLayout('grid')" title="Custom grid layout">
@@ -92,7 +89,7 @@
       <!-- Grid Settings (Dynamic) -->
       <div id="gridSettings">
         <div class="s-head">
-          <span class="material-symbols-outlined">table_rows</span>
+          <span class="material-symbols-outlined"><script>document.write(ICONS.table_rows)</script></span>
           <h3>Grid Configuration</h3>
         </div>
         <div class="grid-inputs">
@@ -114,7 +111,7 @@
             <h3 style="font-size: 14px; letter-spacing: 0.5px;">IMAGES LIBRARY</h3>
           </div>
           <button class="header-add-btn" id="addBtn" onclick="addSlot()" title="Add Photo">
-            <span class="material-symbols-outlined" style="font-size: 32px; font-variation-settings: 'FILL' 1;">add_circle</span>
+            <span class="material-symbols-outlined" style="width:32px; height:32px;"><script>document.write(ICONS.add_circle)</script></span>
           </button>
         </div>
         <div class="slots-rows">
@@ -125,7 +122,7 @@
       <!-- Settings -->
       <section>
         <div class="s-head">
-          <span class="material-symbols-outlined">settings</span>
+          <span class="material-symbols-outlined"><script>document.write(ICONS.settings)</script></span>
           <h3>Settings</h3>
         </div>
         <div style="display:flex;flex-direction:column;gap:18px;">
@@ -176,7 +173,7 @@
     <!-- Sidebar footer -->
     <div class="sidebar-footer">
       <button class="btn-download" id="btnDl" disabled onclick="downloadCollage()">
-        <span class="material-symbols-outlined">download</span>
+        <span class="material-symbols-outlined" style="width:20px; height:20px;"><script>document.write(ICONS.download)</script></span>
         <span>Download PNG</span>
       </button>
     </div>
@@ -186,7 +183,7 @@
   <main class="canvas-area">
     <div class="gen-badge" id="genBadge" aria-live="polite"><div class="gen-dot"></div>Generating…</div>
     <div class="empty-state" id="emptyState">
-      <span class="material-symbols-outlined">photo_library</span>
+      <span class="material-symbols-outlined" style="width:72px; height:72px;"><script>document.write(ICONS.photo_library)</script></span>
       <p>Select a layout and upload your photos —<br><strong>preview will appear automatically</strong></p>
     </div>
     <canvas id="outputCanvas" aria-label="Collage Preview"></canvas>

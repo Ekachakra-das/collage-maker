@@ -4,11 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Collage Maker</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <style>
+    /* ── Fonts ── */
+    @font-face {
+      font-family: 'Inter';
+      src: url('../assets/fonts/Inter-VariableFont.ttf') format('truetype');
+      font-weight: 100 900;
+      font-display: swap;
+      font-style: normal;
+    }
+
+  <script src="../assets/icons.js"></script>
+  <style>
+    /* ── Fonts ── */
+    @font-face {
+      font-family: 'Inter';
+      src: url('../assets/fonts/Inter-VariableFont.ttf') format('truetype');
+      font-weight: 100 900;
+      font-display: swap;
+      font-style: normal;
+    }
+
+    .material-symbols-outlined {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .material-symbols-outlined svg {
+      width: 100%;
+      height: 100%;
+      fill: currentColor;
+    }
+
     :root {
       --primary: #a35dea;
       --primary-hover: #b673f0;
@@ -189,7 +220,10 @@
     /* ── Canvas area ── */
     .canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; background: var(--surface-30); overflow: hidden; }
     .empty-state { text-align: center; z-index: 1; opacity: 0.4; }
-    .empty-state .material-symbols-outlined { font-size: 72px; color: var(--primary-30); margin-bottom: 16px; display: block; }
+    .empty-state .material-symbols-outlined { 
+      width: 72px; height: 72px;
+      color: var(--primary-30); margin: 0 auto 16px; display: flex; 
+    }
     .empty-state p { color: var(--text-faint); font-size: 14px; line-height: 1.7; }
     .preview-img { max-width: 100%; max-height: 100%; border-radius: 16px; box-shadow: 0 28px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04); display: none; animation: canvasFadeIn 0.35s ease; }
     @keyframes canvasFadeIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
@@ -215,7 +249,7 @@
 
 <header>
   <div class="logo">
-    <div class="logo-icon"><span class="material-symbols-outlined">grid_view</span></div>
+    <div class="logo-icon"><span class="material-symbols-outlined"><script>document.write(ICONS.grid_view)</script></span></div>
     <div>
       <h1>Collage Maker</h1>
       <p class="logo-sub">Desktop collage editor</p>
@@ -230,11 +264,11 @@
         <div class="s-head"><h3>Layout Type</h3></div>
         <div class="layout-grid">
           <button class="lay-btn active" id="lay-h" onclick="setLayout('h')" title="Horizontal">
-            <span class="material-symbols-outlined">view_column</span>
+            <span class="material-symbols-outlined"><script>document.write(ICONS.view_column)</script></span>
             <span class="lay-name">Horizontal</span>
           </button>
           <button class="lay-btn" id="lay-v" onclick="setLayout('v')" title="Vertical">
-            <span class="material-symbols-outlined">view_agenda</span>
+            <span class="material-symbols-outlined"><script>document.write(ICONS.view_agenda)</script></span>
             <span class="lay-name">Vertical</span>
           </button>
           <button class="lay-btn" id="lay-grid" onclick="setLayout('grid')" title="Grid">
@@ -267,7 +301,7 @@
         <div class="s-head" style="justify-content: space-between; width: 100%;">
           <h3>IMAGES LIBRARY</h3>
           <button class="header-add-btn" id="addBtn" onclick="addSlot()">
-            <span class="material-symbols-outlined" style="font-size: 32px; font-variation-settings: 'FILL' 1;">add_circle</span>
+            <span class="material-symbols-outlined" style="width: 32px; height: 32px;"><script>document.write(ICONS.add_circle)</script></span>
           </button>
         </div>
         <div id="slots" class="slots-grid"></div>
@@ -312,7 +346,7 @@
 
     <div class="sidebar-footer">
       <button class="btn-download" id="btnDl" disabled onclick="saveCollage()">
-        <span class="material-symbols-outlined">download</span>
+        <span class="material-symbols-outlined"><script>document.write(ICONS.download)</script></span>
         <span>Save Collage</span>
       </button>
     </div>
@@ -321,7 +355,7 @@
   <main class="canvas-area">
     <div class="gen-badge" id="genBadge"><div class="gen-dot"></div>Generating…</div>
     <div class="empty-state" id="emptyState">
-      <span class="material-symbols-outlined">photo_library</span>
+      <span class="material-symbols-outlined" style="width: 72px; height: 72px;"><script>document.write(ICONS.photo_library)</script></span>
       <p>Select a layout and upload your photos —<br><strong>preview will appear automatically</strong></p>
     </div>
     <img id="previewImg" class="preview-img">
@@ -401,15 +435,15 @@
         slotEl.innerHTML = `
           <img src="${images[id].thumb}" class="slot-thumb">
           <div class="slot-overlay">
-            <button class="slot-ol-btn" title="Replace"><span class="material-symbols-outlined">sync</span></button>
+            <button class="slot-ol-btn" title="Replace"><span class="material-symbols-outlined">${ICONS.sync}</span></button>
             <button class="slot-ol-btn delete" title="Delete" onclick="event.stopPropagation(); removeSlot(${id})">
-              <span class="material-symbols-outlined">delete_forever</span>
+              <span class="material-symbols-outlined">${ICONS.delete_forever}</span>
             </button>
           </div>
           <div class="slot-fname">${images[id].name}</div>
         `;
       } else {
-        slotEl.innerHTML = `<span class="material-symbols-outlined slot-icon">image</span>`;
+        slotEl.innerHTML = `<span class="material-symbols-outlined slot-icon">${ICONS.image}</span>`;
       }
       container.appendChild(slotEl);
     });
