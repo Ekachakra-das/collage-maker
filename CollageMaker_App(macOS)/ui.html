@@ -211,7 +211,19 @@
     /* ── Canvas area ── */
     .canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; background: var(--surface-30); overflow: hidden; transition: background 0.2s; }
     .canvas-area.drag-over { background: var(--primary-10); outline: 2px dashed var(--primary); outline-offset: -20px; }
-    .empty-state { text-align: center; z-index: 1; opacity: 0.4; pointer-events: none; }
+    .canvas-area.drag-over .empty-state, .canvas-area.drag-over .preview-img { opacity: 0; pointer-events: none; }
+    .canvas-area.drag-over .drop-hint { display: flex; }
+    
+    .drop-hint {
+      position: absolute; inset: 0;
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; color: var(--primary); z-index: 10;
+      pointer-events: none; animation: hintFade 0.2s ease;
+    }
+    .drop-hint p { font-weight: 700; font-size: 16px; letter-spacing: 0.5px; }
+    @keyframes hintFade { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
+
+    .empty-state { text-align: center; z-index: 1; opacity: 0.4; pointer-events: none; transition: opacity 0.2s; }
     .empty-state .material-symbols-outlined { 
       width: 72px; height: 72px;
       color: var(--primary-30); margin: 0 auto 16px; display: flex; 
@@ -347,7 +359,11 @@
     <div class="gen-badge" id="genBadge"><div class="gen-dot"></div>Generating…</div>
     <div class="empty-state" id="emptyState">
       <span class="material-symbols-outlined" style="width: 72px; height: 72px;"><script>document.write(ICONS.photo_library)</script></span>
-      <p>Select a layout and upload your photos —<br><strong>preview will appear automatically</strong></p>
+      <p>Select a layout and upload, drag & drop, or <strong>paste</strong> your photos —<br><strong>preview will appear automatically</strong></p>
+    </div>
+    <div class="drop-hint">
+      <span class="material-symbols-outlined" style="width:48px; height:48px;"><script>document.write(ICONS.add_circle)</script></span>
+      <p>Drop images here</p>
     </div>
     <img id="previewImg" class="preview-img">
   </main>
@@ -542,9 +558,38 @@
     };
   }
 
+  function initPasteSupport() {
+    window.addEventListener('paste', async e => {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (const item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          let targetId = slotIds.find(id => !images[id]);
+          if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
+            addSlot();
+            targetId = slotIds[slotIds.length - 1];
+          }
+          if (!targetId) targetId = slotIds[0];
+
+          const reader = new FileReader();
+          reader.onload = async ev => {
+            const res = await window.pywebview.api.add_image_data(targetId, ev.target.result, file.name || 'Pasted Image');
+            if (res && res.success) {
+              images[targetId] = { thumb: res.thumb, name: res.name };
+              renderSlots();
+              schedulePreview();
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+  }
+
   // Init
   renderSlots();
   initCenterDragAndDrop();
+  initPasteSupport();
 </script>
 </body>
 </html>

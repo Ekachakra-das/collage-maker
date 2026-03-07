@@ -400,8 +400,28 @@ function initCenterDragAndDrop() {
   };
 }
 
+/** Clipboard Support */
+function initPasteSupport() {
+  window.addEventListener('paste', e => {
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (const item of items) {
+      if (item.type.indexOf('image') !== -1) {
+        const file = item.getAsFile();
+        let targetId = slotIds.find(id => !images[id]);
+        if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
+          addSlot();
+          targetId = slotIds[slotIds.length - 1];
+        }
+        if (!targetId) targetId = slotIds[0];
+        readImageFile(file, targetId);
+      }
+    }
+  });
+}
+
 // ── Init ──────────────────────────────────────
 window.onload = () => {
   renderSlots();
   initCenterDragAndDrop();
+  initPasteSupport();
 };
