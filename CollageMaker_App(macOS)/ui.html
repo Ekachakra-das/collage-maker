@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collage Maker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #a35dea;
+      --primary-hover: #b673f0;
+      --primary-dim: rgba(163, 93, 234, 0.7);
+      --primary-5: rgba(163, 93, 234, 0.05);
+      --primary-10: rgba(163, 93, 234, 0.1);
+      --primary-20: rgba(163, 93, 234, 0.2);
+      --primary-30: rgba(163, 93, 234, 0.3);
+      --bg: #191121;
+      --bg-50: rgba(25, 17, 33, 0.5);
+      --bg-80: rgba(25, 17, 33, 0.8);
+      --surface: #251b2e;
+      --surface-30: rgba(37, 27, 46, 0.3);
+      --border: #3a2d47;
+      --text: #f1ecf5;
+      --text-dim: #a89bb5;
+      --text-faint: #6f5f80;
+      --white: #ffffff;
+      --red: #ef4444;
+      --green: #22c55e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+    body { display: flex; flex-direction: column; }
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-50);
+      backdrop-filter: blur(20px);
+      flex-shrink: 0;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      background: var(--primary); padding: 7px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px var(--primary-30);
+    }
+    .logo-icon .material-symbols-outlined { color: var(--white); font-size: 20px; }
+    .logo h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.2; }
+    .logo-sub { font-size: 11px; color: var(--primary-dim); font-weight: 500; margin-top: 1px; }
+
+    /* ── App shell ── */
+    .app { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 320px; flex-shrink: 0;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      height: 100%;
+    }
+    .sidebar-scroll {
+      flex: 1; overflow-y: auto; padding: 20px 20px 24px;
+      display: flex; flex-direction: column; gap: 28px;
+    }
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-80);
+    }
+
+    /* ── Section headers ── */
+    .s-head { display: flex; align-items: center; gap: 8px; color: var(--primary); margin-bottom: 14px; }
+    .s-head h3 { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; }
+
+    /* ── Layout picker ── */
+    .layout-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .lay-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 5px; padding: 10px 4px;
+      border: 1px solid var(--border); border-radius: 12px;
+      background: transparent; cursor: pointer;
+      transition: all 0.18s ease; color: var(--text);
+      user-select: none;
+    }
+    .lay-btn:hover { border-color: rgba(163,93,234,0.5); }
+    .lay-btn.active { border: 2px solid var(--primary); background: var(--primary-10); }
+    .lay-btn .material-symbols-outlined, .lay-btn .lay-svg { font-size: 26px; opacity: 0.5; transition: opacity 0.2s; }
+    .lay-btn.active .material-symbols-outlined, .lay-btn.active .lay-svg { color: var(--primary); opacity: 1; }
+    .lay-name { font-size: 11px; font-weight: 600; color: var(--text-dim); }
+    .lay-btn.active .lay-name { color: var(--primary); }
+
+    /* ── Image slots ── */
+    .header-add-btn {
+      background: none; border: none; padding: 0; cursor: pointer;
+      color: var(--primary); display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+    .header-add-btn:hover { transform: scale(1.1); opacity: 0.9; }
+    .header-add-btn:disabled { opacity: 0.35; cursor: default; }
+
+    .slots-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+    .slot {
+      position: relative; border-radius: 12px; overflow: hidden;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, #1f1826 0%, #150f1d 100%);
+      cursor: pointer; transition: all 0.2s;
+      width: calc(33.333% - 8px); aspect-ratio: 1/1;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .slot:hover { border-color: var(--primary-dim); transform: translateY(-2px); }
+    .slot.empty { border-style: solid; }
+    .slot .slot-icon { color: var(--text-faint); font-size: 24px; }
+    .slot:hover .slot-icon { color: var(--primary); }
+
+    .slot.filled { border-style: solid; padding: 0; }
+    .slot-thumb { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; }
+    .slot-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.4);
+      opacity: 0; display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity 0.2s;
+    }
+    .slot.filled:hover .slot-overlay { opacity: 1; }
+    .slot-ol-btn {
+      width: 32px; height: 32px; border: none; border-radius: 50%;
+      background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background 0.15s; color: var(--white);
+    }
+    .slot-ol-btn:hover { background: rgba(255,255,255,0.35); }
+    .slot-ol-btn.delete:hover { background: rgba(239,68,68,0.7); }
+    .slot-fname {
+      position: absolute; bottom: 6px; left: 8px; right: 8px;
+      font-size: 10px; font-weight: 600; color: var(--white);
+      background: var(--bg-80); backdrop-filter: blur(6px);
+      padding: 4px 8px; border-radius: 6px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      pointer-events: none; display: none;
+    }
+
+    /* ── Sliders ── */
+    .setting { display: flex; flex-direction: column; gap: 8px; }
+    .setting-head { display: flex; justify-content: space-between; align-items: center; }
+    .setting-head label { font-size: 12px; font-weight: 500; }
+    .setting-head em { font-style: normal; font-weight: 700; color: var(--primary); font-size: 12px; }
+    input[type=range] { appearance: none; -webkit-appearance: none; width: 100%; height: 6px; background: var(--border); border-radius: 6px; outline: none; cursor: pointer; accent-color: var(--primary); }
+    input[type=range]::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); box-shadow: 0 2px 8px var(--primary-30); cursor: pointer; transition: transform 0.15s; }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+    /* ── Color pickers ── */
+    .color-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 4px; }
+    .cpg-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-faint); margin-bottom: 6px; }
+    .cpg-swatch { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); cursor: pointer; position: relative; transition: border-color 0.2s; }
+    .cpg-swatch:hover { border-color: rgba(163,93,234,0.5); }
+    .cpg-dot { width: 22px; height: 22px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.15); flex-shrink: 0; }
+    .cpg-hex { font-size: 10px; font-family: monospace; color: var(--text-dim); }
+    .cpg-swatch input[type=color] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+    /* ── Download button ── */
+    .btn-download { width: 100%; padding: 13px; border-radius: 12px; border: none; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 14px; background: var(--primary); color: var(--white); box-shadow: 0 6px 20px var(--primary-20); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-download:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 8px 28px var(--primary-30); }
+    .btn-download:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ── Canvas area ── */
+    .canvas-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; position: relative; background: var(--surface-30); overflow: hidden; }
+    .empty-state { text-align: center; z-index: 1; opacity: 0.4; }
+    .empty-state .material-symbols-outlined { font-size: 72px; color: var(--primary-30); margin-bottom: 16px; display: block; }
+    .empty-state p { color: var(--text-faint); font-size: 14px; line-height: 1.7; }
+    .preview-img { max-width: 100%; max-height: 100%; border-radius: 16px; box-shadow: 0 28px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04); display: none; animation: canvasFadeIn 0.35s ease; }
+    @keyframes canvasFadeIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+
+    .gen-badge { position: absolute; top: 16px; right: 16px; display: none; align-items: center; gap: 8px; background: var(--primary-10); border: 1px solid var(--primary-30); color: var(--primary); padding: 6px 14px; border-radius: 30px; font-size: 11px; font-weight: 700; }
+    .gen-badge.show { display: flex; }
+    .gen-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--primary); animation: genPulse 0.8s infinite ease-in-out; }
+    @keyframes genPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.5)} }
+
+    #gridSettings { display: none; background: var(--surface-30); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; flex-direction: column; gap: 12px; }
+    #gridSettings.show { display: flex; }
+    .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid-input-group label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-faint); margin-bottom: 6px; }
+    .grid-input-group input { width: 100%; height: 36px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0 10px; font-family: inherit; font-weight: 600; outline: none; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 30px; font-size: 13px; font-weight: 600; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: none; z-index: 999; }
+    .toast.show { display: block; }
+    .toast.ok { border-color: rgba(34,197,94,0.4); color: var(--green); }
+    .toast.err { border-color: rgba(239,68,68,0.3); color: var(--red); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon"><span class="material-symbols-outlined">grid_view</span></div>
+    <div>
+      <h1>Collage Maker</h1>
+      <p class="logo-sub">Desktop collage editor</p>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-scroll">
+      <section>
+        <div class="s-head"><h3>Layout Type</h3></div>
+        <div class="layout-grid">
+          <button class="lay-btn active" id="lay-h" onclick="setLayout('h')" title="Horizontal">
+            <span class="material-symbols-outlined">view_column</span>
+            <span class="lay-name">Horizontal</span>
+          </button>
+          <button class="lay-btn" id="lay-v" onclick="setLayout('v')" title="Vertical">
+            <span class="material-symbols-outlined">view_agenda</span>
+            <span class="lay-name">Vertical</span>
+          </button>
+          <button class="lay-btn" id="lay-grid" onclick="setLayout('grid')" title="Grid">
+            <svg class="lay-svg" viewBox="-0.5 -0.5 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" height="26" width="26">
+              <path d="M1.875 1.875h4.375v4.375H1.875Z" stroke-width="1"></path>
+              <path d="M8.75 1.875h4.375v4.375h-4.375Z" stroke-width="1"></path>
+              <path d="M8.75 8.75h4.375v4.375h-4.375Z" stroke-width="1"></path>
+              <path d="M1.875 8.75h4.375v4.375H1.875Z" stroke-width="1"></path>
+            </svg>
+            <span class="lay-name">Grid</span>
+          </button>
+        </div>
+      </section>
+
+      <div id="gridSettings">
+        <div class="s-head"><h3>Grid Configuration</h3></div>
+        <div class="grid-inputs">
+          <div class="grid-input-group">
+            <label>Rows</label>
+            <input type="number" id="gridRows" min="1" max="5" value="2" oninput="onGridChange()">
+          </div>
+          <div class="grid-input-group">
+            <label>Cols</label>
+            <input type="number" id="gridCols" min="1" max="5" value="2" oninput="onGridChange()">
+          </div>
+        </div>
+      </div>
+
+      <section>
+        <div class="s-head" style="justify-content: space-between; width: 100%;">
+          <h3>IMAGES LIBRARY</h3>
+          <button class="header-add-btn" id="addBtn" onclick="addSlot()">
+            <span class="material-symbols-outlined" style="font-size: 32px; font-variation-settings: 'FILL' 1;">add_circle</span>
+          </button>
+        </div>
+        <div id="slots" class="slots-grid"></div>
+      </section>
+
+      <section>
+        <div class="s-head"><h3>Settings</h3></div>
+        <div style="display:flex;flex-direction:column;gap:18px;">
+          <div class="setting">
+            <div class="setting-head"><label>Padding</label><em id="vSpacing">40px</em></div>
+            <input type="range" id="spacing" min="0" max="100" value="40" oninput="onSetting(this,'vSpacing')">
+          </div>
+          <div class="setting">
+            <div class="setting-head"><label>Corner Radius</label><em id="vRadius">40px</em></div>
+            <input type="range" id="radius" min="0" max="80" value="40" oninput="onSetting(this,'vRadius')">
+          </div>
+          <div class="setting">
+            <div class="setting-head"><label>Border</label><em id="vBorder">2px</em></div>
+            <input type="range" id="borderWidth" min="0" max="10" value="2" oninput="onSetting(this,'vBorder')">
+          </div>
+          <div class="color-pair">
+            <div>
+              <div class="cpg-label">Background</div>
+              <div class="cpg-swatch">
+                <div class="cpg-dot" id="bgDot" style="background:#ffffff;"></div>
+                <span class="cpg-hex" id="bgHex">#FFFFFF</span>
+                <input type="color" id="bgColor" value="#ffffff" oninput="onColorPick(this,'bgDot','bgHex')">
+              </div>
+            </div>
+            <div>
+              <div class="cpg-label">Border</div>
+              <div class="cpg-swatch">
+                <div class="cpg-dot" id="brDot" style="background:#c8c8c8;"></div>
+                <span class="cpg-hex" id="brHex">#C8C8C8</span>
+                <input type="color" id="borderColor" value="#c8c8c8" oninput="onColorPick(this,'brDot','brHex')">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn-download" id="btnDl" disabled onclick="saveCollage()">
+        <span class="material-symbols-outlined">download</span>
+        <span>Save Collage</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="canvas-area">
+    <div class="gen-badge" id="genBadge"><div class="gen-dot"></div>Generating…</div>
+    <div class="empty-state" id="emptyState">
+      <span class="material-symbols-outlined">photo_library</span>
+      <p>Select a layout and upload your photos —<br><strong>preview will appear automatically</strong></p>
+    </div>
+    <img id="previewImg" class="preview-img">
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  let layoutMode = 'h';
+  let slotIds = [1, 2];
+  let images = {}; // id -> {thumb, name}
+  let previewTimer = null;
+
+  function showToast(msg, ok=true) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + (ok ? 'ok' : 'err');
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  function setLayout(mode) {
+    layoutMode = mode;
+    document.querySelectorAll('.lay-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('lay-' + mode).classList.add('active');
+    
+    const gs = document.getElementById('gridSettings');
+    gs.classList.toggle('show', mode === 'grid');
+    
+    if (mode === 'grid') {
+      onGridChange();
+    } else {
+      slotIds = [1, 2];
+      document.getElementById('addBtn').disabled = false;
+      renderSlots();
+    }
+    schedulePreview();
+  }
+
+  function onGridChange() {
+    const rows = parseInt(document.getElementById('gridRows').value) || 1;
+    const cols = parseInt(document.getElementById('gridCols').value) || 1;
+    const count = rows * cols;
+    slotIds = Array.from({length: count}, (_, i) => i + 1);
+    document.getElementById('addBtn').disabled = true;
+    renderSlots();
+    schedulePreview();
+  }
+
+  function addSlot() {
+    if (layoutMode === 'grid' || slotIds.length >= 5) return;
+    const newId = Math.max(...slotIds, 0) + 1;
+    slotIds.push(newId);
+    if (slotIds.length >= 5) document.getElementById('addBtn').disabled = true;
+    renderSlots();
+  }
+
+  function removeSlot(id) {
+    if (slotIds.length <= 2) return;
+    slotIds = slotIds.filter(sid => sid !== id);
+    delete images[id];
+    document.getElementById('addBtn').disabled = false;
+    renderSlots();
+    schedulePreview();
+  }
+
+  function renderSlots() {
+    const container = document.getElementById('slots');
+    container.innerHTML = '';
+    slotIds.forEach(id => {
+      const isFilled = !!images[id];
+      const slotEl = document.createElement('div');
+      slotEl.className = `slot ${isFilled ? 'filled' : 'empty'}`;
+      slotEl.onclick = () => pickImage(id);
+
+      if (isFilled) {
+        slotEl.innerHTML = `
+          <img src="${images[id].thumb}" class="slot-thumb">
+          <div class="slot-overlay">
+            <button class="slot-ol-btn" title="Replace"><span class="material-symbols-outlined">sync</span></button>
+            <button class="slot-ol-btn delete" title="Delete" onclick="event.stopPropagation(); removeSlot(${id})">
+              <span class="material-symbols-outlined">delete_forever</span>
+            </button>
+          </div>
+          <div class="slot-fname">${images[id].name}</div>
+        `;
+      } else {
+        slotEl.innerHTML = `<span class="material-symbols-outlined slot-icon">image</span>`;
+      }
+      container.appendChild(slotEl);
+    });
+  }
+
+  async function pickImage(id) {
+    const res = await window.pywebview.api.pick_image(id);
+    if (res && res.success) {
+      images[id] = { thumb: res.thumb, name: res.name };
+      renderSlots();
+      schedulePreview();
+    }
+  }
+
+  function onSetting(el, vId) {
+    document.getElementById(vId).textContent = el.value + 'px';
+    schedulePreview();
+  }
+
+  function onColorPick(el, dId, hId) {
+    document.getElementById(dId).style.background = el.value;
+    document.getElementById(hId).textContent = el.value.toUpperCase();
+    schedulePreview();
+  }
+
+  function schedulePreview() {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(generateCollage, 400);
+  }
+
+  async function generateCollage() {
+    const filledCount = Object.keys(images).length;
+    if (filledCount < slotIds.length) {
+      document.getElementById('btnDl').disabled = true;
+      return;
+    }
+
+    document.getElementById('genBadge').classList.add('show');
+    const settings = {
+      layout: layoutMode,
+      count: slotIds.length,
+      rows: document.getElementById('gridRows').value,
+      cols: document.getElementById('gridCols').value,
+      spacing: document.getElementById('spacing').value,
+      radius: document.getElementById('radius').value,
+      borderWidth: document.getElementById('borderWidth').value,
+      bgColor: document.getElementById('bgColor').value,
+      borderColor: document.getElementById('borderColor').value
+    };
+
+    const res = await window.pywebview.api.generate_collage(settings);
+    document.getElementById('genBadge').classList.remove('show');
+    
+    if (res && res.success) {
+      const img = document.getElementById('previewImg');
+      img.src = res.preview;
+      img.style.display = 'block';
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('btnDl').disabled = false;
+    } else if (res) {
+      showToast(res.error || 'Error', false);
+    }
+  }
+
+  async function saveCollage() {
+    const res = await window.pywebview.api.save_collage();
+    if (res && res.success) {
+      showToast('Saved successfully!');
+    } else if (res && res.error && res.error !== 'Отменено' && res.error !== 'Cancelled') {
+      showToast(res.error, false);
+    }
+  }
+
+  // Init
+  renderSlots();
+</script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <title>Collage Maker — Create Photo Collages Online Free</title>
+  <meta name="description" content="Free online collage maker. Create professional photo collages directly in your browser. Supports horizontal, vertical, and custom grid layouts with up to 25 images. No server uploads, 100% private.">
+  <meta name="keywords" content="online collage maker, photo collage, create collage, free collage tool, private collage creator">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://collagemaker.app/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://collagemaker.app/">
+  <meta property="og:title" content="Collage Maker — Professional Online Editor">
+  <meta property="og:description" content="Create beautiful photo collages in seconds. No registration, no server uploads.">
+  <meta property="og:image" content="https://collagemaker.app/og-image.png">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://collagemaker.app/">
+  <meta name="twitter:title" content="Collage Maker — Photo Collages Online">
+  <meta name="twitter:description" content="Create private photo collages directly in your browser.">
+  <meta name="twitter:image" content="https://collagemaker.app/og-image.png">
+
+  <!-- Structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Collage Maker",
+    "description": "Free online tool to create photo collages in the browser without server uploads.",
+    "applicationCategory": "PhotographyApplication",
+    "operatingSystem": "All",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <span class="material-symbols-outlined">grid_view</span>
+    </div>
+    <div>
+      <h1>Collage Maker</h1>
+      <p class="logo-sub">Professional online collage editor</p>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="sidebar" aria-label="Collage Settings">
+    <div class="sidebar-scroll">
+
+      <!-- Layout type -->
+      <section>
+        <div class="s-head">
+          <span class="material-symbols-outlined">dashboard</span>
+          <h3>Layout Type</h3>
+        </div>
+        <div class="layout-grid" role="group" aria-label="Select layout type">
+          <button class="lay-btn active" id="lay-h" onclick="setLayout('h')" title="Horizontal layout">
+            <span class="material-symbols-outlined">view_column</span>
+            <span class="lay-name">Horizontal</span>
+          </button>
+          <button class="lay-btn" id="lay-v" onclick="setLayout('v')" title="Vertical layout">
+            <span class="material-symbols-outlined">view_agenda</span>
+            <span class="lay-name">Vertical</span>
+          </button>
+          <button class="lay-btn" id="lay-grid" onclick="setLayout('grid')" title="Custom grid layout">
+            <svg class="lay-svg" viewBox="-0.5 -0.5 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" height="26" width="26">
+              <path d="M1.875 1.875h4.375v4.375H1.875Z" stroke-width="1"></path>
+              <path d="M8.75 1.875h4.375v4.375h-4.375Z" stroke-width="1"></path>
+              <path d="M8.75 8.75h4.375v4.375h-4.375Z" stroke-width="1"></path>
+              <path d="M1.875 8.75h4.375v4.375H1.875Z" stroke-width="1"></path>
+            </svg>
+            <span class="lay-name">Grid</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Grid Settings (Dynamic) -->
+      <div id="gridSettings">
+        <div class="s-head">
+          <span class="material-symbols-outlined">table_rows</span>
+          <h3>Grid Configuration</h3>
+        </div>
+        <div class="grid-inputs">
+          <div class="grid-input-group">
+            <label for="gridRows">Rows</label>
+            <input type="number" id="gridRows" min="1" max="5" value="2" oninput="onGridChange()">
+          </div>
+          <div class="grid-input-group">
+            <label for="gridCols">Columns</label>
+            <input type="number" id="gridCols" min="1" max="5" value="2" oninput="onGridChange()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Images -->
+      <section>
+        <div class="s-head" style="justify-content: space-between; align-items: center; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h3 style="font-size: 14px; letter-spacing: 0.5px;">IMAGES LIBRARY</h3>
+          </div>
+          <button class="header-add-btn" id="addBtn" onclick="addSlot()" title="Add Photo">
+            <span class="material-symbols-outlined" style="font-size: 32px; font-variation-settings: 'FILL' 1;">add_circle</span>
+          </button>
+        </div>
+        <div class="slots-rows">
+          <div id="slots" class="slots-grid"></div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section>
+        <div class="s-head">
+          <span class="material-symbols-outlined">settings</span>
+          <h3>Settings</h3>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:18px;">
+          <div class="setting">
+            <div class="setting-head">
+              <label for="spacing">Padding</label>
+              <em id="vSpacing">40px</em>
+            </div>
+            <input type="range" id="spacing" min="0" max="100" value="40" oninput="onSetting(this,'vSpacing','px')">
+          </div>
+          <div class="setting">
+            <div class="setting-head">
+              <label for="radius">Corner Radius</label>
+              <em id="vRadius">40px</em>
+            </div>
+            <input type="range" id="radius" min="0" max="80" value="40" oninput="onSetting(this,'vRadius','px')">
+          </div>
+          <div class="setting">
+            <div class="setting-head">
+              <label for="borderW">Border Thickness</label>
+              <em id="vBorder">2px</em>
+            </div>
+            <input type="range" id="borderW" min="0" max="10" value="2" oninput="onSetting(this,'vBorder','px')">
+          </div>
+          <div class="color-pair">
+            <div>
+              <div class="cpg-label">Background</div>
+              <div class="cpg-swatch">
+                <div class="cpg-dot" id="bgDot" style="background:#ffffff;"></div>
+                <span class="cpg-hex" id="bgHex">#FFFFFF</span>
+                <input type="color" id="bgColor" value="#ffffff" aria-label="Background Color" oninput="onColorPick(this,'bgDot','bgHex')">
+              </div>
+            </div>
+            <div>
+              <div class="cpg-label">Border</div>
+              <div class="cpg-swatch">
+                <div class="cpg-dot" id="brDot" style="background:#c8c8c8;"></div>
+                <span class="cpg-hex" id="brHex">#C8C8C8</span>
+                <input type="color" id="borderColor" value="#c8c8c8" aria-label="Border Color" oninput="onColorPick(this,'brDot','brHex')">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Sidebar footer -->
+    <div class="sidebar-footer">
+      <button class="btn-download" id="btnDl" disabled onclick="downloadCollage()">
+        <span class="material-symbols-outlined">download</span>
+        <span>Download PNG</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Canvas area -->
+  <main class="canvas-area">
+    <div class="gen-badge" id="genBadge" aria-live="polite"><div class="gen-dot"></div>Generating…</div>
+    <div class="empty-state" id="emptyState">
+      <span class="material-symbols-outlined">photo_library</span>
+      <p>Select a layout and upload your photos —<br><strong>preview will appear automatically</strong></p>
+    </div>
+    <canvas id="outputCanvas" aria-label="Collage Preview"></canvas>
+  </main>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="fileInputs"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
