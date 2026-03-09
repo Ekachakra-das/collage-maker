@@ -69,8 +69,8 @@ function onColorPick(el, dotId, hexId) {
 function onGridChange() {
   if (layoutMode !== 'grid') return;
   
-  gridRows = Math.min(Math.max(parseInt(document.getElementById('gridRows').value) || 1, 1), 5);
-  gridCols = Math.min(Math.max(parseInt(document.getElementById('gridCols').value) || 1, 1), 5);
+  gridRows = Math.min(Math.max(parseInt(document.getElementById('gridRows').value) || 1, 1), 10);
+  gridCols = Math.min(Math.max(parseInt(document.getElementById('gridCols').value) || 1, 1), 10);
   
   // Ensure values back in inputs if they were capped
   document.getElementById('gridRows').value = gridRows;
@@ -107,9 +107,9 @@ function setLayout(mode) {
     addBtn.style.display = 'flex';
     
     // Resume previous H/V slots if they were multi, or default back to 2
-    if (slotIds.length > 5) slotIds = slotIds.slice(0, 5);
+    if (slotIds.length > 50) slotIds = slotIds.slice(0, 50);
     if (slotIds.length < 2) slotIds = [1, 2];
-    addBtn.disabled = (slotIds.length >= 5);
+    addBtn.disabled = (slotIds.length >= 50);
     
     renderSlots();
     if (allLoaded()) schedulePreview();
@@ -119,12 +119,12 @@ function setLayout(mode) {
 
 function addSlot() {
   if (layoutMode === 'grid') return;
-  if (slotIds.length >= 5) return;
+  if (slotIds.length >= 50) return;
 
   const newId = Math.max(...slotIds, 0) + 1;
   slotIds.push(newId);
   
-  if (slotIds.length >= 5) document.getElementById('addBtn').disabled = true;
+  if (slotIds.length >= 50) document.getElementById('addBtn').disabled = true;
   
   renderSlots();
 }
@@ -391,16 +391,16 @@ function initCenterDragAndDrop() {
     let usedIds = [];
     files.forEach(file => {
       let targetId = slotIds.find(id => !images[id] && !usedIds.includes(id));
-      if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
+      if (!targetId && layoutMode !== 'grid' && slotIds.length < 50) {
         addSlot();
         targetId = slotIds[slotIds.length - 1];
+      }
+      if (!targetId) {
+        targetId = slotIds.find(id => !usedIds.includes(id));
       }
       if (targetId) {
         usedIds.push(targetId);
         readImageFile(file, targetId);
-      } else {
-        // Fallback to first slot if full
-        readImageFile(file, slotIds[0]);
       }
     });
   };
@@ -410,23 +410,29 @@ function initCenterDragAndDrop() {
 function initPasteSupport() {
   window.addEventListener('paste', e => {
     const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-    let usedIds = [];
+    const files = [];
     for (const item of items) {
       if (item.type.indexOf('image') !== -1) {
-        const file = item.getAsFile();
-        let targetId = slotIds.find(id => !images[id] && !usedIds.includes(id));
-        if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
-          addSlot();
-          targetId = slotIds[slotIds.length - 1];
-        }
-        if (targetId) {
-          usedIds.push(targetId);
-          readImageFile(file, targetId);
-        } else {
-          readImageFile(file, slotIds[0]);
-        }
+        files.push(item.getAsFile());
       }
     }
+    if (files.length === 0) return;
+
+    let usedIds = [];
+    files.forEach(file => {
+      let targetId = slotIds.find(id => !images[id] && !usedIds.includes(id));
+      if (!targetId && layoutMode !== 'grid' && slotIds.length < 50) {
+        addSlot();
+        targetId = slotIds[slotIds.length - 1];
+      }
+      if (!targetId) {
+        targetId = slotIds.find(id => !usedIds.includes(id));
+      }
+      if (targetId) {
+        usedIds.push(targetId);
+        readImageFile(file, targetId);
+      }
+    });
   });
 }
 
@@ -481,3 +487,138 @@ function initSidebarResizer() {
     localStorage.setItem('collage-sidebar-width', finalWidth);
   });
 }
+let currentGridMaxSize = 5;
+
+function makeVisualGrid(maxSize) {
+  const container = document.getElementById('visualGridContainer');
+  if (!container) return;
+  
+  let vGrid = document.getElementById('visualGrid');
+  if (vGrid) vGrid.remove();
+  
+  vGrid = document.createElement('div');
+  vGrid.className = 'visual-grid';
+  vGrid.id = 'visualGrid';
+  vGrid.style.gridTemplateColumns = `repeat(${maxSize}, 1fr)`;
+  
+  const vgHeader = document.getElementById('vgHeader');
+  if (maxSize > 5) {
+     vGrid.style.maxWidth = '260px'; // wider for 10x10
+     vGrid.style.gap = '2px';
+     if(vgHeader) vgHeader.style.maxWidth = '260px';
+  } else {
+     vGrid.style.maxWidth = '160px';
+     vGrid.style.gap = '4px';
+     if(vgHeader) vgHeader.style.maxWidth = '160px';
+  }
+  
+  for(let r=1; r<=maxSize; r++) {
+    for(let c=1; c<=maxSize; c++) {
+      let cell = document.createElement('div');
+      cell.className = 'vg-cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      if (maxSize > 5) {
+          cell.style.borderRadius = '2px';
+      }
+      vGrid.appendChild(cell);
+    }
+  }
+  
+  if(vgHeader) {
+      container.insertBefore(vGrid, vgHeader.nextSibling);
+  } else {
+      container.insertBefore(vGrid, container.firstChild);
+  }
+  
+  let isDragging = false;
+  
+  function updateVisuals(r, c) {
+    document.querySelectorAll('.vg-cell').forEach(cell => {
+      const cr = parseInt(cell.dataset.r);
+      const cc = parseInt(cell.dataset.c);
+      if(cr <= r && cc <= c) cell.classList.add('active');
+      else cell.classList.remove('active');
+    });
+    const label = document.getElementById('gridSizeLabel');
+    if(label) label.innerHTML = `${r} &times; ${c}`;
+  }
+  
+  function handlePointer(e) {
+    const rect = vGrid.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    let y = e.clientY - rect.top;
+    
+    x = Math.max(0, Math.min(x, rect.width - 0.1));
+    y = Math.max(0, Math.min(y, rect.height - 0.1));
+    
+    const cw = rect.width / maxSize;
+    const ch = rect.height / maxSize;
+    
+    let c = Math.ceil(x / cw);
+    let r = Math.ceil(y / ch);
+    
+    c = Math.max(1, Math.min(maxSize, c));
+    r = Math.max(1, Math.min(maxSize, r));
+    
+    updateVisuals(r, c);
+    return {r, c};
+  }
+
+  // Handle both mouse and touch via pointer events
+  vGrid.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    vGrid.setPointerCapture(e.pointerId);
+    handlePointer(e);
+  });
+  
+  vGrid.addEventListener('pointermove', (e) => {
+    if(!isDragging) return;
+    handlePointer(e);
+  });
+  
+  vGrid.addEventListener('pointerup', (e) => {
+    if(!isDragging) return;
+    isDragging = false;
+    vGrid.releasePointerCapture(e.pointerId);
+    const {r, c} = handlePointer(e);
+    
+    document.getElementById('gridRows').value = r;
+    document.getElementById('gridCols').value = c;
+    onGridChange();
+  });
+
+  // Also support clicking dynamically without dragging
+  vGrid.addEventListener('click', (e) => {
+     if(!isDragging) {
+         const {r, c} = handlePointer(e);
+         document.getElementById('gridRows').value = r;
+         document.getElementById('gridCols').value = c;
+         onGridChange();
+     }
+  });
+  
+  const initR = parseInt(document.getElementById('gridRows').value) || 2;
+  const initC = parseInt(document.getElementById('gridCols').value) || 2;
+  updateVisuals(initR, initC);
+}
+
+function expandVisualGrid() {
+  currentGridMaxSize = 10;
+  makeVisualGrid(currentGridMaxSize);
+  const btn = document.getElementById('btnExpandGrid');
+  if(btn) btn.style.display = 'none';
+}
+
+function initVisualGrid() {
+   makeVisualGrid(currentGridMaxSize);
+}
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initVisualGrid, 100);
+});
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initVisualGrid, 100);
+});

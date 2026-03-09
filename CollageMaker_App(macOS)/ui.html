@@ -225,7 +225,7 @@
     }
     .empty-state p { color: var(--text-dim); font-size: 14px; line-height: 1.7; }
     .empty-state strong { color: var(--text-main); }
-    .preview-img { max-width: 100%; max-height: 100%; border-radius: 16px; box-shadow: 0 28px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04); display: none; animation: canvasFadeIn 0.35s ease; }
+    .preview-img { max-width: 100%; max-height: 100%; box-shadow: 0 28px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04); display: none; animation: canvasFadeIn 0.35s ease; }
     @keyframes canvasFadeIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
 
     .gen-badge { position: absolute; top: 16px; right: 16px; display: none; align-items: center; gap: 8px; background: var(--primary-10); border: 1px solid var(--primary-30); color: var(--primary); padding: 6px 14px; border-radius: 30px; font-size: 11px; font-weight: 700; }
@@ -235,7 +235,14 @@
 
     #gridSettings { display: none; background: var(--surface-30); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; flex-direction: column; gap: 12px; }
     #gridSettings.show { display: flex; }
+    .visual-grid-wrapper { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 5px; }
+    .visual-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; width: 100%; max-width: 160px; padding: 10px; background: var(--bg-100); border: 1px solid var(--border); border-radius: 12px; touch-action: none; user-select: none; cursor: crosshair; }
+    .vg-cell { aspect-ratio: 1/1; background: var(--bg-50); border: 1px solid var(--border); border-radius: 4px; pointer-events: none; transition: background 0.1s, border-color 0.1s; }
+    .vg-cell.active { background: var(--accent); border-color: var(--accent); opacity: 0.8; }
+    .grid-size-label { font-size: 13px; font-weight: 700; color: var(--text-sec); font-family: inherit; }
     .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn-more-grid { margin-top: 4px; padding: 4px 8px; border-radius: 4px; background: transparent; border: 1px solid var(--border); color: var(--text-dim); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-more-grid:hover { background: var(--surface); color: var(--text); }
     .grid-input-group label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-faint); margin-bottom: 6px; }
     .grid-input-group input { width: 100%; height: 36px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0 10px; font-family: inherit; font-weight: 600; outline: none; }
 
@@ -284,16 +291,16 @@
 
       <div id="gridSettings">
         <div class="s-head"><h3>Grid Configuration</h3></div>
-        <div class="grid-inputs">
-          <div class="grid-input-group">
-            <label>Rows</label>
-            <input type="number" id="gridRows" min="1" max="5" value="2" oninput="onGridChange()">
-          </div>
-          <div class="grid-input-group">
-            <label>Cols</label>
-            <input type="number" id="gridCols" min="1" max="5" value="2" oninput="onGridChange()">
+        
+        <div class="visual-grid-wrapper" id="visualGridContainer">
+          <div class="vg-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 160px; margin-bottom: 4px;" id="vgHeader">
+            <div class="grid-size-label" id="gridSizeLabel">2 &times; 2</div>
+            <button type="button" class="btn-more-grid" id="btnExpandGrid" onclick="expandVisualGrid()" title="Expand up to 10x10" style="margin: 0; padding: 2px 6px; font-size: 15px;">+</button>
           </div>
         </div>
+
+        <input type="hidden" id="gridRows" value="2">
+        <input type="hidden" id="gridCols" value="2">
       </div>
 
       <section>
@@ -411,10 +418,10 @@
   }
 
   function addSlot() {
-    if (layoutMode === 'grid' || slotIds.length >= 5) return;
+    if (layoutMode === 'grid' || slotIds.length >= 50) return;
     const newId = Math.max(...slotIds, 0) + 1;
     slotIds.push(newId);
-    if (slotIds.length >= 5) document.getElementById('addBtn').disabled = true;
+    if (slotIds.length >= 50) document.getElementById('addBtn').disabled = true;
     renderSlots();
   }
 
@@ -534,14 +541,14 @@
       const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
       if (files.length === 0) return;
 
-      let usedIds = [];
+      let usedIds = Object.keys(images).map(Number);
       for (const file of files) {
-        let targetId = slotIds.find(id => !images[id] && !usedIds.includes(id));
-        if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
+        let targetId = slotIds.find(id => !usedIds.includes(id));
+        if (!targetId && layoutMode !== 'grid' && slotIds.length < 50) {
           addSlot();
           targetId = slotIds[slotIds.length - 1];
         }
-        if (!targetId) targetId = slotIds[0];
+        if (!targetId) continue;
         usedIds.push(targetId);
 
         const reader = new FileReader();
@@ -562,16 +569,16 @@
   function initPasteSupport() {
     window.addEventListener('paste', async e => {
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-      let usedIds = [];
+      let usedIds = Object.keys(images).map(Number);
       for (const item of items) {
         if (item.type.indexOf('image') !== -1) {
           const file = item.getAsFile();
-          let targetId = slotIds.find(id => !images[id] && !usedIds.includes(id));
-          if (!targetId && layoutMode !== 'grid' && slotIds.length < 5) {
+          let targetId = slotIds.find(id => !usedIds.includes(id));
+          if (!targetId && layoutMode !== 'grid' && slotIds.length < 50) {
             addSlot();
             targetId = slotIds[slotIds.length - 1];
           }
-          if (!targetId) targetId = slotIds[0];
+          if (!targetId) continue;
           usedIds.push(targetId);
 
           const reader = new FileReader();
